@@ -2,7 +2,10 @@ from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 
+from nestris_ocr.capturing import uncached_capture
 from nestris_ocr.calibration2.window_select import WindowSelect
+from nestris_ocr.calibration2.capture_scene import CaptureScene
+from nestris_ocr.calibration2.capture_view import CaptureView
 
 import os
 
@@ -91,7 +94,6 @@ class Calibrator(QMainWindow):
 
   def initUI(self):
     main_path = os.path.dirname(__file__)
-    print(main_path)
     self._setupActions()
     self._setupMenu()
     statusbar = self.statusBar()
@@ -112,17 +114,47 @@ class Calibrator(QMainWindow):
     self.topBoxLayout.addWidget(self.windowSelect)
     self.topBoxLayout.addWidget(buttons)
 
-    self.label = QLabel(self)
-    pixmap = QPixmap(os.path.join(main_path, './boardLayout.png'))
-    pixmap = pixmap.scaled(2*pixmap.width(), 2*pixmap.height())
-    self.label.setPixmap(pixmap)
+    # self.view = QLabel(self)
+    # pixmap = QPixmap(os.path.join(main_path, './boardLayout.png'))
+    # pixmap = pixmap.scaled(2*pixmap.width(), 2*pixmap.height())
+    # self.view.setPixmap(pixmap)
+    self.scene = CaptureScene()
+    self.view = CaptureView(self.scene)
+    # Necessary as an offering to the sizeHint overlords
+    self.view.refresh()
+    self.view.fitInView(self.view.sceneRect(), Qt.KeepAspectRatio)
 
     self.layout = QVBoxLayout()
     self.topLeft = QWidget()
     self.topLeft.setLayout(self.topBoxLayout)
     self.layout.addWidget(self.topLeft)
-    self.layout.addWidget(self.label)
+    # self.layout.addWidget(self.capture)
+    self.layout.addWidget(self.view)
     self.main = QWidget(self)
     self.main.setLayout(self.layout)
     self.setCentralWidget(self.main)
     # self.resize(pixmap.width(), pixmap.height())
+    self.timer = QTimer()
+    self.timer.timeout.connect(self.view.refresh)
+    self.timer.start(50)
+
+  def show(self, *args, **kwargs):
+    super().show(*args, **kwargs)
+    self.view.setRect(self.view.sceneRect())
+
+
+  def resizeEvent(self, *args, **kwargs):
+    super().resizeEvent(*args, **kwargs)
+    # self.view.refresh()
+    # print(self.view.width(), self.view.height())
+    self.view.setRect(self.view.sceneRect())
+    # print(self.view.transform().type())
+    # print(self.view.mapFromScene(0.0,0.0))
+    # print(self.view.mapToScene(self.view.viewport().width(), self.view.viewport().height()))
+    # print(self.view.viewport().width(), self.view.viewport().height())
+    # print(self.width(), self.height())
+
+  def closeEvent(self, *args, **kwargs):
+    super().closeEvent(*args, **kwargs)
+    uncached_capture().stop()
+    # stop the uncached capture.

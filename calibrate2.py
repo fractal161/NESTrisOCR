@@ -8,7 +8,6 @@ import sys
 from nestris_ocr.calibration2.calibrator import Calibrator
 # from .simple_calibrator import SimpleCalibrator
 from nestris_ocr.config import config
-from nestris_ocr.capturing import uncached_capture
 
 # def get_calibrator_type(config):
 #     if config["calibrator.ui"] == "SIMPLE":
