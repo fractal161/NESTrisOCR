@@ -3,6 +3,7 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 
 from nestris_ocr.capturing import uncached_capture
+from nestris_ocr.calibration2.number_range import IntRange
 from nestris_ocr.calibration2.window_select import WindowSelect
 from nestris_ocr.calibration2.capture_scene import CaptureScene
 from nestris_ocr.calibration2.capture_view import CaptureView
@@ -91,7 +92,6 @@ class Calibrator(QMainWindow):
       flash.addAction(act)
     options.addAction(self.colorAct)
 
-
   def initUI(self):
     main_path = os.path.dirname(__file__)
     self._setupActions()
@@ -124,12 +124,42 @@ class Calibrator(QMainWindow):
     self.view.refresh()
     self.view.fitInView(self.view.sceneRect(), Qt.KeepAspectRatio)
 
-    self.layout = QVBoxLayout()
+    self.leftLayout = QVBoxLayout()
     self.topLeft = QWidget()
     self.topLeft.setLayout(self.topBoxLayout)
-    self.layout.addWidget(self.topLeft)
-    # self.layout.addWidget(self.capture)
-    self.layout.addWidget(self.view)
+    self.leftLayout.addWidget(self.topLeft)
+    # self.leftLayout.addWidget(self.capture)
+    self.leftLayout.addWidget(self.view)
+
+    self.captureDims = QGroupBox("Capture dimensions")
+    self.dimLayout = QVBoxLayout()
+    self.captureX = IntRange('x', 0, 1000)
+    self.captureY = IntRange('y', 0, 1000)
+    self.captureW = IntRange('w', 0, 1000)
+    self.captureH = IntRange('h', 0, 1000)
+
+    self.dimLayout.addWidget(self.captureX)
+    self.dimLayout.addWidget(self.captureY)
+    self.dimLayout.addWidget(self.captureW)
+    self.dimLayout.addWidget(self.captureH)
+    self.dimLayout.addStretch(1)
+    self.captureDims.setLayout(self.dimLayout)
+    # self.leftLayout.addWidget(self.captureDims)
+
+    self.left = QWidget(self)
+    self.left.setLayout(self.leftLayout)
+
+    self.right = QTabWidget(self)
+    self.test = QLabel(self)
+    # pixmap = QPixmap(os.path.join(main_path, './boardLayout.png'))
+    # pixmap = pixmap.scaled(2*pixmap.width(), 2*pixmap.height())
+    self.view.rectChanged.connect(lambda x, y : self.test.setPixmap(QPixmap(y)))
+    # self.test.setPixmap(pixmap)
+    self.right.addTab(self.test, 'Test')
+
+    self.layout = QHBoxLayout()
+    self.layout.addWidget(self.left)
+    self.layout.addWidget(self.right)
     self.main = QWidget(self)
     self.main.setLayout(self.layout)
     self.setCentralWidget(self.main)
