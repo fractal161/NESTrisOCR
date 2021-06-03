@@ -35,7 +35,22 @@ from nestris_ocr.config import config
 # if __name__ == "__main__":
 #     mainLoop()
 
+
+class Debug(QApplication):
+
+    t = QElapsedTimer()
+
+    def notify(self, receiver, event):
+        self.t.start()
+        ret = QApplication.notify(self, receiver, event)
+        if(self.t.elapsed() > 1):
+            print(f"processing event type {event.type()} for object {receiver.objectName()} "
+                  f"took {self.t.elapsed()}ms")
+        return ret
+
+
 def main():
+  # app = Debug(sys.argv)
   app = QApplication(sys.argv)
   ex = Calibrator()
   sys.exit(app.exec_())
